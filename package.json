@@ -1,0 +1,24 @@
+{
+  "name": "@brandazine/rcp",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test"
+  },
+  "workspaces": ["packages/*"],
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^22.10.2",
+    "biome": "^0.3.3",
+    "turbo": "^2.3.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@trpc/server": "^10.45.2"
+  },
+  "packageManager": "bun@1.1.42"
+}
