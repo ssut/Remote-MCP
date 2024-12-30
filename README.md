@@ -2,6 +2,9 @@
 
 **A type-safe solution for remote MCP communication, enabling bidirectional data flow.**
 
+<img src="https://github.com/user-attachments/assets/b06d7081-7748-4fc7-b972-e1c5e03245dd" width="400">
+
+
 This library provides type-safe communication with [Model Context Protocol](https://modelcontextprotocol.org/) services over HTTP. It's designed for remote access and centralized management of model contexts.
 
 ## Key Features
