@@ -109,6 +109,10 @@ Bun.serve(
 );
 ```
 
+Then you can see like the following in your MCP client:
+
+<img src="https://github.com/user-attachments/assets/86cf500e-b937-47fc-9ac1-db106ab7a6a3" width="450">
+
 ## Packages
 
 This repository contains:
