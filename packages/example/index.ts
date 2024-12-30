@@ -1,22 +1,25 @@
-import { MCPRouter } from "@rcp/server";
+import { LogLevel, MCPRouter } from "@remote-mcp/server";
 import { createHTTPServer } from "@trpc/server/adapters/standalone";
+import { createBunServeHandler } from "trpc-bun-adapter";
+
 import { z } from "zod";
 
 // Create router instance
 const mcpRouter = new MCPRouter({
+  logLevel: LogLevel.DEBUG,
   name: "example-server",
   version: "1.0.0",
   capabilities: {
-    tools: {
-      listChanged: true,
-    },
-    resources: {
-      subscribe: true,
-      listChanged: true,
-    },
-    prompts: {
-      listChanged: true,
-    },
+    //   tools: {
+    //     listChanged: true,
+    //   },
+    //   resources: {
+    //     subscribe: true,
+    //     listChanged: true,
+    //   },
+    //   prompts: {
+    //     listChanged: true,
+    //   },
     logging: {},
   },
 });
@@ -25,18 +28,20 @@ const mcpRouter = new MCPRouter({
 mcpRouter.addTool(
   "calculator",
   {
-    description: "Perform basic calculations",
+    description:
+      "Perform basic calculations. Add, subtract, multiply, divide. Invoke this every time you need to perform a calculation instead of your calculation.",
     schema: z.object({
       operation: z.enum(["add", "subtract", "multiply", "divide"]),
-      a: z.number(),
-      b: z.number(),
+      a: z.string(),
+      b: z.string(),
     }),
   },
   async (args) => {
-    const { operation, a, b } = args;
-    let result: number;
+    const a = Number(args.a);
+    const b = Number(args.b);
 
-    switch (operation) {
+    let result: number;
+    switch (args.operation) {
       case "add":
         result = a + b;
         break;
@@ -58,22 +63,15 @@ mcpRouter.addTool(
   },
 );
 
-// Create tRPC router
-const trpcRouter = mcpRouter.createTRPCRouter();
+const appRouter = mcpRouter.createTRPCRouter();
 
-// Create HTTP server
-const server = createHTTPServer({
-  router: trpcRouter,
-  createContext: () => ({}),
-});
-
-// Start server
-const port = process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 9512;
-server.listen(port);
-console.log(`Server running at http://localhost:${port}`);
-
-// Handle process signals
-process.on("SIGINT", () => {
-  console.log("Shutting down...");
-  process.exit(0);
-});
+Bun.serve(
+  createBunServeHandler(
+    {
+      router: appRouter,
+    },
+    {
+      port: Number(process.env.PORT || 9512),
+    },
+  ),
+);

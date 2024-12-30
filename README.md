@@ -39,7 +39,7 @@ void client.start();
 #### Server Usage (Remote MCP Implementation)
 
 ```typescript
-import { MCPRouter, LogLevel } from "@rcp/server";
+import { MCPRouter, LogLevel } from "@remote-mcp/server";
 import { createHTTPServer } from "@trpc/server/adapters/standalone";
 import { createBunServeHandler } from "trpc-bun-adapter";
 

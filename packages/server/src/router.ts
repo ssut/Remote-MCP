@@ -1,30 +1,46 @@
-import type {
-  CallToolResult,
-  Implementation,
-  InitializeRequest,
-  InitializeResult,
-  Prompt,
-  PromptMessage,
-  Resource,
-  ResourceContents,
-  ServerCapabilities,
-  Tool,
+import { ConsoleLogger, LogLevel, type Logger } from "./logger";
+
+import {
+  type BlobResourceContents,
+  type CallToolResult,
+  CallToolResultSchema,
+  GetPromptResultSchema,
+  type Implementation,
+  type InitializeRequest,
+  type InitializeResult,
+  ListPromptsResultSchema,
+  ListResourcesResultSchema,
+  ListToolsResult,
+  ListToolsResultSchema,
+  type Prompt,
+  type PromptMessage,
+  ReadResourceResultSchema,
+  type Resource,
+  type ResourceContents,
+  type ServerCapabilities,
+  type Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 import {
+  CallToolRequestSchema,
+  GetPromptRequestSchema,
   InitializeRequestSchema,
+  InitializeResultSchema,
   LATEST_PROTOCOL_VERSION,
+  ListPromptsRequestSchema,
+  ListResourcesRequestSchema,
+  ListToolsRequestSchema,
+  ReadResourceRequestSchema,
+  SetLevelRequestSchema,
+  SubscribeRequestSchema,
+  UnsubscribeRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import {
-  type inferRouterInputs,
-  type inferRouterOutputs,
-  initTRPC,
-} from "@trpc/server";
-import { z } from "zod";
+import { initTRPC } from "@trpc/server";
+import { ZodError, type z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
 export type ToolHandler<T> = (args: T) => Promise<CallToolResult>;
 export type ResourceHandler = () => Promise<Resource[]>;
-export type ResourceContentHandler = () => Promise<ResourceContents[]>;
+export type ResourceContentHandler = () => Promise<BlobResourceContents[]>;
 export type PromptHandler = (
   args: Record<string, string>,
 ) => Promise<PromptMessage[]>;
@@ -59,6 +75,8 @@ export interface MCPRouterOptions {
   name: string;
   version: string;
   capabilities?: Partial<ServerCapabilities>;
+  logger?: Logger;
+  logLevel?: LogLevel;
 }
 
 export type Middleware = (
@@ -67,6 +85,8 @@ export type Middleware = (
 ) => Promise<unknown>;
 
 export class MCPRouter {
+  private logger: Logger;
+
   private tools = new Map<
     string,
     {
@@ -92,6 +112,13 @@ export class MCPRouter {
   private capabilities: ServerCapabilities;
 
   constructor(options: MCPRouterOptions) {
+    this.logger =
+      options.logger ||
+      new ConsoleLogger({
+        level: options.logLevel || LogLevel.INFO,
+        prefix: options.name,
+      });
+
     this.implementation = {
       name: options.name,
       version: options.version,
@@ -111,6 +138,12 @@ export class MCPRouter {
       logging: options.capabilities?.logging,
       experimental: options.capabilities?.experimental,
     };
+
+    this.logger.debug("MCPRouter initialized", {
+      name: options.name,
+      version: options.version,
+      capabilities: this.capabilities,
+    });
   }
 
   // Tool methods
@@ -119,25 +152,38 @@ export class MCPRouter {
     definition: ToolDefinition<T>,
     handler: ToolHandler<T>,
   ) {
+    this.logger.debug("Adding tool", { name, definition });
+
     this.tools.set(name, { definition, handler });
     return this;
   }
 
   async listTools(): Promise<Tool[]> {
-    return Array.from(this.tools.entries()).map(([name, { definition }]) => {
-      const schema = zodToJsonSchema(definition.schema);
-      return {
-        name,
-        description: definition.description,
-        inputSchema: {
-          type: "object",
-          properties: schema,
-        },
-      };
-    });
+    this.logger.debug("Listing resources");
+
+    const tools = Array.from(this.tools.entries()).map(
+      ([name, { definition }]) => {
+        const schema = {
+          ...zodToJsonSchema(definition.schema),
+          $schema: undefined,
+        };
+        return {
+          name,
+          description: definition.description,
+          inputSchema: {
+            type: "object",
+            properties: schema,
+          },
+        } satisfies Tool;
+      },
+    );
+
+    return tools;
   }
 
   async callTool(name: string, args: unknown): Promise<CallToolResult> {
+    this.logger.debug("Calling tool", { name, args });
+
     const tool = this.tools.get(name);
     if (!tool) {
       throw new Error(`Tool not found: ${name}`);
@@ -145,10 +191,9 @@ export class MCPRouter {
 
     const { definition, handler } = tool;
 
-    // Parse and validate arguments
     const validatedArgs = definition.schema.parse(args);
+    this.logger.debug("Tool args validated", { validatedArgs });
 
-    // Apply middlewares
     let result = validatedArgs;
     if (definition.middlewares) {
       for (const middleware of definition.middlewares) {
@@ -156,11 +201,9 @@ export class MCPRouter {
       }
     }
 
-    // Call handler
     return handler(result);
   }
 
-  // Resource methods
   addResource(uri: string, definition: ResourceDefinition) {
     this.resources.set(uri, definition);
     return this;
@@ -185,13 +228,12 @@ export class MCPRouter {
     return resources;
   }
 
-  async readResource(uri: string): Promise<ResourceContents[]> {
+  async readResource(uri: string): Promise<BlobResourceContents[]> {
     const resource = this.resources.get(uri);
     if (!resource) {
       throw new Error(`Resource not found: ${uri}`);
     }
 
-    // Apply middlewares
     let result = { uri };
     if (resource.middlewares) {
       for (const middleware of resource.middlewares) {
@@ -257,9 +299,13 @@ export class MCPRouter {
     name: string,
     args: Record<string, string> = {},
   ): Promise<PromptMessage[]> {
+    this.logger.debug("Getting prompt", { name, args });
+
     const prompt = this.prompts.get(name);
     if (!prompt) {
-      throw new Error(`Prompt not found: ${name}`);
+      const error = `Prompt not found: ${name}`;
+      this.logger.error(error);
+      throw new Error(error);
     }
 
     const { definition, handler } = prompt;
@@ -268,7 +314,9 @@ export class MCPRouter {
     if (definition.arguments) {
       for (const arg of definition.arguments) {
         if (arg.required && !(arg.name in args)) {
-          throw new Error(`Missing required argument: ${arg.name}`);
+          const error = `Missing required argument: ${arg.name}`;
+          this.logger.error(error, { name, args });
+          throw new Error(error);
         }
       }
     }
@@ -282,14 +330,24 @@ export class MCPRouter {
           async (modified) => modified,
         )) as Record<string, string>;
       }
+
+      this.logger.debug("Prompt middleware applied", { modifiedArgs });
     }
 
-    return handler(modifiedArgs);
+    const messages = await handler(modifiedArgs);
+    this.logger.debug("Prompt executed successfully", {
+      name,
+      messageCount: messages.length,
+    });
+    return messages;
   }
 
   // Initialize handler
   async initialize(request: InitializeRequest): Promise<InitializeResult> {
+    this.logger.debug("Initializing", { request });
+
     return {
+      id: "RemoteMCP",
       protocolVersion: LATEST_PROTOCOL_VERSION,
       capabilities: this.capabilities,
       serverInfo: this.implementation,
@@ -298,141 +356,98 @@ export class MCPRouter {
 
   // Create tRPC router
   createTRPCRouter() {
-    const t = initTRPC.create();
+    const t = initTRPC.create({
+      errorFormatter({ type, path, input, shape, error }) {
+        return {
+          ...shape,
+          data: {
+            ...shape.data,
+            zodError:
+              error.code === "BAD_REQUEST" && error.cause instanceof ZodError
+                ? error.cause.flatten()
+                : null,
+          },
+        };
+      },
+    });
     const router = t.router;
     const publicProcedure = t.procedure;
 
-    return router({
-      // Initialize endpoint
+    const appRouter = router({
+      hello: publicProcedure.query(() => "Hello, world!"),
+
       initialize: publicProcedure
         .input(InitializeRequestSchema)
+        .output(InitializeResultSchema)
         .mutation(async ({ input }) => {
           const { params } = { params: input };
           return this.initialize(params);
         }),
 
-      // Tools endpoints
       "tools/list": publicProcedure
-        .input(
-          z
-            .object({
-              cursor: z.string().optional(),
-              limit: z.number().optional(),
-            })
-            .optional(),
-        )
+        .input(ListToolsRequestSchema)
+        .output(ListToolsResultSchema)
         .query(async ({ input }) => ({
           tools: await this.listTools(),
-          ...(input?.cursor && { nextCursor: input.cursor }),
+          // ...(input.params?.cursor && { nextCursor: input.params?.cursor }),
         })),
 
       "tools/call": publicProcedure
-        .input(
-          z.object({
-            name: z.string(),
-            arguments: z.record(z.unknown()).optional(),
-          }),
-        )
+        .input(CallToolRequestSchema)
+        .output(CallToolResultSchema)
         .mutation(async ({ input }) =>
-          this.callTool(input.name, input.arguments),
+          this.callTool(input.params.name, input.params.arguments),
         ),
 
       // Resources endpoints
       "resources/list": publicProcedure
-        .input(
-          z
-            .object({
-              cursor: z.string().optional(),
-              limit: z.number().optional(),
-            })
-            .optional(),
-        )
+        .input(ListResourcesRequestSchema)
+        .output(ListResourcesResultSchema)
         .query(async ({ input }) => ({
           resources: await this.listResources(),
-          ...(input?.cursor && { nextCursor: input.cursor }),
         })),
 
       "resources/read": publicProcedure
-        .input(
-          z.object({
-            uri: z.string(),
-          }),
-        )
+        .input(ReadResourceRequestSchema)
+        .output(ReadResourceResultSchema)
         .query(async ({ input }) => ({
-          contents: await this.readResource(input.uri),
+          contents: await this.readResource(input.params.uri),
         })),
 
       "resources/subscribe": publicProcedure
-        .input(
-          z.object({
-            uri: z.string(),
-          }),
-        )
+        .input(SubscribeRequestSchema)
         .mutation(async ({ input }) => {
-          await this.subscribeToResource(input.uri);
+          await this.subscribeToResource(input.params.uri);
           return {};
         }),
 
       "resources/unsubscribe": publicProcedure
-        .input(
-          z.object({
-            uri: z.string(),
-          }),
-        )
+        .input(UnsubscribeRequestSchema)
         .mutation(async ({ input }) => {
-          await this.unsubscribeFromResource(input.uri);
+          await this.unsubscribeFromResource(input.params.uri);
           return {};
         }),
 
       // Prompts endpoints
       "prompts/list": publicProcedure
-        .input(
-          z
-            .object({
-              cursor: z.string().optional(),
-              limit: z.number().optional(),
-            })
-            .optional(),
-        )
+        .input(ListPromptsRequestSchema)
+        .output(ListPromptsResultSchema)
         .query(async ({ input }) => ({
           prompts: await this.listPrompts(),
-          ...(input?.cursor && { nextCursor: input.cursor }),
+          // ...(input?.cursor && { nextCursor: input.cursor }),
         })),
 
       "prompts/get": publicProcedure
-        .input(
-          z.object({
-            name: z.string(),
-            arguments: z.record(z.string()).optional(),
-          }),
-        )
+        .input(GetPromptRequestSchema)
+        .output(GetPromptResultSchema)
         .query(async ({ input }) => ({
-          messages: await this.getPrompt(input.name, input.arguments),
+          messages: await this.getPrompt(
+            input.params.name,
+            input.params.arguments,
+          ),
         })),
-
-      // If logging is enabled
-      ...(this.capabilities.logging && {
-        "logging/setLevel": publicProcedure
-          .input(
-            z.object({
-              level: z.enum([
-                "debug",
-                "info",
-                "notice",
-                "warning",
-                "error",
-                "critical",
-                "alert",
-                "emergency",
-              ]),
-            }),
-          )
-          .mutation(async ({ input }) => {
-            // Use input parameter to avoid unused variable warning
-            console.log(input.level);
-            return {};
-          }),
-      }),
     });
+
+    return appRouter;
   }
 }

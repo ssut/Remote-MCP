@@ -1,4 +1,4 @@
-# @rcp/example
+# @remote-mcp/example
 
 To install dependencies:
 

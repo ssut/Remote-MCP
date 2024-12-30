@@ -3,29 +3,24 @@
   "compilerOptions": {
     "resolveJsonModule": false,
     "lib": ["ESNext", "DOM"],
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleDetection": "force",
-    "allowImportingTsExtensions": false,
-
-    // Change these settings
+    "target": "ES2020",
+    "module": "ES2020",
     "moduleResolution": "node",
+    "allowImportingTsExtensions": false,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "baseUrl": "./",
+    "rootDir": "./src",
     "outDir": "./dist",
     "noEmit": false,
     "tsBuildInfoFile": ".tsbuildinfo",
-
     "strict": true,
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
-
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
   },
-  "include": ["src"],
+  "include": ["./src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
