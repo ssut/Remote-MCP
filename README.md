@@ -1,9 +1,10 @@
-# @remote-mcp (Remote Model Context Protocol)
+# Remote-MCP: Remote Model Context Protocol
 
 **A type-safe solution for remote MCP communication, enabling bidirectional data flow.**
 
 <img src="https://github.com/user-attachments/assets/b06d7081-7748-4fc7-b972-e1c5e03245dd" width="400">
 
+> *Note: This project is currently under active development and is considered experimental. Expect breaking changes and potential issues.*
 
 This library provides type-safe communication with [Model Context Protocol](https://modelcontextprotocol.org/) services over HTTP. It's designed for remote access and centralized management of model contexts.
 
