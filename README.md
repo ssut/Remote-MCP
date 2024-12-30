@@ -17,15 +17,31 @@ This library provides type-safe communication with [Model Context Protocol](http
 
 ## Getting Started
 
-### Installation
+## Client Usage
 
-```bash
-npm install @remote-mcp/client
+### Use Publicly Published Package
+
+This package is not yet published to the npm registry. (Coming soon)
+
+Just put the following code in your MCP client settings, in here I'm using Claude as an example:
+
+```json
+{
+  "mcpServers": {
+    "remote-mcp": {
+      "command": "npx",
+      "args": ["-y", "@remote-mcp/client"],
+      "env": {
+        "REMOTE_MCP_URL": "http://localhost:9512"
+      }
+    }
+  }
+}
 ```
 
-### Client Usage (as a Local MCP Server)
+### Code Your Own Local MCP Server
 
-```typescript
+```ts
 import { RemoteMCPClient } from "@remote-mcp/client";
 
 const client = new RemoteMCPClient({
@@ -37,6 +53,8 @@ void client.start();
 ```
 
 #### Server Usage (Remote MCP Implementation)
+
+After `npm install @remote-mcp/server`, you can your own remote MCP server like the following:
 
 ```typescript
 import { MCPRouter, LogLevel } from "@remote-mcp/server";
