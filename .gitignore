@@ -177,3 +177,5 @@ dist
 .DS_Store
 
 .turbo/
+
+packages/*/README.md

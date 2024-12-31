@@ -18,7 +18,8 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "publish-packages": "changeset version && changeset publish"
+    "copy-readme": "cp README.md packages/server/README.md && cp README.md packages/client/README.md",
+    "publish-packages": "pnpm run copy-readme && changeset version && changeset publish"
   },
   "workspaces": ["packages/*"],
   "devDependencies": {
