@@ -1,19 +1,9 @@
 # Remote-MCP: Remote Model Context Protocol
 
-> *Note: This project is currently under active development and is considered experimental. Expect breaking changes and potential issues.*
-
 A **type-safe, bidirectional and simple** solution for **remote MCP communication**, allowing remote access and centralized management of model contexts.
 
-<table>
-<tr>
-<td width="50%" style="height: 300px; vertical-align: middle;">
-<img src="https://github.com/user-attachments/assets/86cf500e-b937-47fc-9ac1-db106ab7a6a3" style="max-height: 100%; object-fit: contain;">
-</td>
-<td width="50%" style="height: 300px; vertical-align: middle;">
-<img src="https://github.com/user-attachments/assets/b06d7081-7748-4fc7-b972-e1c5e03245dd" style="max-height: 100%; object-fit: contain;">
-</td>
-</tr>
-</table>
+![preview](https://github.com/user-attachments/assets/a16804b9-8378-493c-8ca8-f61839458cde)
+
 
 ## Architecture
 
@@ -71,6 +61,8 @@ Yes, I know that the official MCP roadmap includes remote MCP support in the fir
 Note: I don't want this to be a sophisticated or overcomplicated thing. This way **just works right now**.
 
 ## Getting Started
+
+> *Note: This project is currently under active development and is considered experimental. Expect breaking changes and potential issues.*
 
 ## Client Usage
 
