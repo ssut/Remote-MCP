@@ -60,16 +60,16 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: 📝 Version
+      - name: Creating .npmrc
+        run: |
+          cat << EOF > "$HOME/.npmrc"
+            //registry.npmjs.org/:_authToken=$NPM_TOKEN
+          EOF
         env:
-          TAG_NAME: ${{ github.event.release.tag_name }}
-        run: pnpm version ${TAG_NAME} --no-git-tag-version || true
-
-      - name: Set publishing config
-        run: pnpm config set '//registry.npmjs.org/:_authToken' "${NODE_AUTH_TOKEN}"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: 🐙 Publish
         run: |
-          pnpm publish --no-git-checks --access=public
+          pnpm publish-packages
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

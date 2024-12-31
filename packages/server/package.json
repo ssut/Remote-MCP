@@ -2,6 +2,7 @@
   "name": "@remote-mcp/server",
   "version": "0.0.1",
   "type": "module",
+  "access": "public",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ssut/Remote-MCP.git",
