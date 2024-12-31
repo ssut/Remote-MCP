@@ -68,7 +68,7 @@ graph TD
 
 Yes, I know that the official MCP roadmap includes remote MCP support in the first quarter of 2025. However, the need for remote access was *immediate* for me, and likely for many others. This library was created to bridge that gap, providing a way to connect to a remote MCP server from a local MCP client *right now*, without waiting for future official implementations.
 
-Note: I don't want this to be a sophisticated or overcomplicated thing. This **just works right now.
+Note: I don't want this to be a sophisticated or overcomplicated thing. This **just works right now**.
 
 ## Getting Started
 
