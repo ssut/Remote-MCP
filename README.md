@@ -68,15 +68,13 @@ graph TD
 
 Yes, I know that the official MCP roadmap includes remote MCP support in the first quarter of 2025. However, the need for remote access was *immediate* for me, and likely for many others. This library was created to bridge that gap, providing a way to connect to a remote MCP server from a local MCP client *right now*, without waiting for future official implementations.
 
-Note: I don't want this to be a sophisticated or overcomplicated thing. This **just works right now**.
+Note: I don't want this to be a sophisticated or overcomplicated thing. This way **just works right now**.
 
 ## Getting Started
 
 ## Client Usage
 
 ### Use Publicly Published Package
-
-This package is not yet published to the npm registry. (Coming soon)
 
 Just put the following code in your MCP client settings, in here I'm using Claude as an example:
 
@@ -97,11 +95,20 @@ Just put the following code in your MCP client settings, in here I'm using Claud
 
 ### Code Your Own Local MCP Server
 
+Install requirements:
+
+```sh
+$ npm install @remote-mcp/client @trpc/client@next zod
+```
+
+then write your own code like the following:
+
 ```ts
 import { RemoteMCPClient } from "@remote-mcp/client";
 
 const client = new RemoteMCPClient({
   remoteUrl: "http://localhost:9512",
+
   onError: (method, error) => console.error(`Error in ${method}:`, error)
 });
 
