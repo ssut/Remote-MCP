@@ -3,12 +3,15 @@
   "globalDependencies": ["**/.env"],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["@remote-mcp/server#build"],
       "outputs": ["dist/**"]
     },
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "@remote-mcp/server#build": {
+      "outputs": ["dist/**"]
     },
     "test": {
       "dependsOn": ["build"]
