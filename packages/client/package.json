@@ -9,6 +9,11 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "author": {
+    "name": "Suhun Han",
+    "email": "suhunhankr@gmail.com",
+    "url": "https://ssut.me"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w"

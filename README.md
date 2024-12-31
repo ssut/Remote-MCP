@@ -108,14 +108,20 @@ const client = new RemoteMCPClient({
 void client.start();
 ```
 
-#### Server Usage (Remote MCP Implementation)
+## Server Usage (Remote MCP Implementation)
+
+You can see some examples in the `examples` directory.
+
+- [Cloudflare Worker](examples/cloudflare-worker)
+- [Standalone Node.js](examples/simple-server)
+
+### Code Your Own Remote MCP Server
 
 After `npm install @remote-mcp/server`, you can your own remote MCP server like the following:
 
 ```typescript
 import { MCPRouter, LogLevel } from "@remote-mcp/server";
-import { createHTTPServer } from "@trpc/server/adapters/standalone";
-import { createBunServeHandler } from "trpc-bun-adapter";
+import { createHTTPServer } from '@trpc/server/adapters/standalone';
 
 import { z } from "zod";
 
@@ -170,17 +176,10 @@ mcpRouter.addTool(
 
 const appRouter = mcpRouter.createTRPCRouter();
 
-// Example using trpc-bun-adapter
-Bun.serve(
-  createBunServeHandler(
-    {
-      router: appRouter,
-    },
-    {
-      port: Number(process.env.PORT || 9512),
-    },
-  ),
-);
+void createHTTPServer({
+  router: appRouter,
+  createContext: () => ({}),
+}).listen(Number(process.env.PORT || 9512));
 ```
 
 Then you can see like the following in your MCP client:

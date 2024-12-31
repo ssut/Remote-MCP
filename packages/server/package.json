@@ -7,6 +7,11 @@
     "url": "git+https://github.com/ssut/Remote-MCP.git",
     "directory": "packages/server"
   },
+  "author": {
+    "name": "Suhun Han",
+    "email": "suhunhankr@gmail.com",
+    "url": "https://ssut.me"
+  },
   "exports": {
     "./package.json": "./package.json",
     ".": {

@@ -4,6 +4,15 @@
   "engines": {
     "node": ">=20.0.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ssut/Remote-MCP.git"
+  },
+  "author": {
+    "name": "Suhun Han",
+    "email": "suhunhankr@gmail.com",
+    "url": "https://ssut.me"
+  },
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
