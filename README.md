@@ -1,19 +1,74 @@
 # Remote-MCP: Remote Model Context Protocol
 
-**A type-safe solution for remote MCP communication, enabling bidirectional data flow.**
-
-<img src="https://github.com/user-attachments/assets/b06d7081-7748-4fc7-b972-e1c5e03245dd" width="400">
-
 > *Note: This project is currently under active development and is considered experimental. Expect breaking changes and potential issues.*
 
-This library provides type-safe communication with [Model Context Protocol](https://modelcontextprotocol.org/) services over HTTP. It's designed for remote access and centralized management of model contexts.
+A **type-safe, bidirectional and simple** solution for **remote MCP communication**, allowing remote access and centralized management of model contexts.
 
-## Key Features
+<table>
+<tr>
+<td width="50%" style="height: 300px; vertical-align: middle;">
+<img src="https://github.com/user-attachments/assets/86cf500e-b937-47fc-9ac1-db106ab7a6a3" style="max-height: 100%; object-fit: contain;">
+</td>
+<td width="50%" style="height: 300px; vertical-align: middle;">
+<img src="https://github.com/user-attachments/assets/b06d7081-7748-4fc7-b972-e1c5e03245dd" style="max-height: 100%; object-fit: contain;">
+</td>
+</tr>
+</table>
 
-*   **Type Safety:** End-to-end type safety for all MCP interactions.
-*   **Bidirectional:** Supports bidirectional data exchange between the MCP server and the remote implementation.
-*   **Remote Access:** Enables network connections to a remote MCP implementation for centralized management.
-*   **Simple Integration:** Easy to integrate with any MCP client.
+## Architecture
+
+```mermaid
+%%{init: {"flowchart": {"htmlLabels": false}} }%%
+graph TD
+    %% Modern, Bright Color Styling with white text
+    classDef client fill:#22c55e,stroke:#059669,stroke-width:2px,color:#ffffff
+    classDef gateway fill:#06b6d4,stroke:#0891b2,stroke-width:2px,color:#ffffff
+    classDef backend fill:#f97316,stroke:#ea580c,stroke-width:2px,color:#ffffff
+    classDef resource fill:#8b5cf6,stroke:#7c3aed,stroke-width:2px,color:#ffffff
+    classDef server fill:#06b6d4,stroke:#0891b2,stroke-width:2px,color:#ffffff
+
+    linkStyle default stroke:#64748b,stroke-width:1.5px,stroke-dasharray: 5 5
+
+    %% Current MCP Setup (Multiple Local Servers)
+    subgraph Current["Current Setup (Local)"]
+        direction LR
+        subgraph ClientGroup["Client"]
+            A[Client]:::client
+        end
+
+        subgraph Servers["Local MCP Servers"]
+            direction TB
+            B1["Local MCP Server (DB)"]:::server -->|"DB Access"| C1[DB]:::resource
+            B2["Local MCP Server (API 1)"]:::server -->|"API Access"| C2["Web API 1"]:::resource
+            B3["Local MCP Server (API 2)"]:::server -->|"API Access"| C3["Web API 2"]:::resource
+        end
+
+        A -->|"MCP Protocol"| B1
+        A -->|"MCP Protocol"| B2
+        A -->|"MCP Protocol"| B3
+    end
+
+    %% Vertical separator
+    Current --> Proposed
+
+    %% Proposed MCP Architecture (Decoupled)
+    subgraph Proposed["Proposed Architecture (Remote)"]
+        direction LR
+        D[Client/Host]:::client -->|"MCP Protocol"| E["Local MCP Server (@remote-mcp/client)"]:::server
+        E <-->|"tRPC(HTTP)"| F["Remote MCP Server (@remote-mcp/server)"]:::backend
+
+        %% Separated Resources
+        F -->|"DB Access"| G1[DB]:::resource
+        F -->|"API Access"| G2["Web API 1"]:::resource
+        F -->|"API Access"| G3["Web API 2"]:::resource
+    end
+```
+
+## Why I Made This (Now)
+
+Yes, I know that the official MCP roadmap includes remote MCP support in the first quarter of 2025. However, the need for remote access was *immediate* for me, and likely for many others. This library was created to bridge that gap, providing a way to connect to a remote MCP server from a local MCP client *right now*, without waiting for future official implementations.
+
+Note: I don't want this to be a sophisticated or overcomplicated thing. This **just works right now.
 
 ## Getting Started
 
@@ -32,7 +87,8 @@ Just put the following code in your MCP client settings, in here I'm using Claud
       "command": "npx",
       "args": ["-y", "@remote-mcp/client"],
       "env": {
-        "REMOTE_MCP_URL": "http://localhost:9512"
+        "REMOTE_MCP_URL": "http://localhost:9512",
+        "HTTP_HEADER__Authorization": "Bearer <token>"
       }
     }
   }
@@ -137,6 +193,37 @@ This repository contains:
 
 *   `@remote-mcp/client`: Client library acting as a local MCP server, connecting to a remote implementation.
 *   `@remote-mcp/server`: Server library for creating remotely accessible MCP services (used as the remote implementation).
+
+## Roadmap
+
+### Core Features
+
+- [x] Basic *Type-safe* Client/Server Communication
+  - [x] Basic MCP Command Support
+  - [x] Basic MCP Tool Support
+  - [x] Basic MCP Prompt Support
+  - [ ] Crash-Safe Handling (WIP, top priority)
+- [ ] Complete Event Subscription System
+  - [ ] Resource change notifications
+  - [ ] Tool/Prompt list change notifications
+- [ ] HTTP Header Support
+  - [ ] Custom Headers
+  - [ ] Authentication Middleware
+- [ ] Basic error handling improvements
+
+### Framework Support
+
+- [ ] Basic middleware support
+- [ ] Nest.js Integration (`@remote-mcp/nestjs`)
+
+### Advanced Features
+
+- [ ] Bidirectional communication
+  - [ ] Server-to-client requests
+  - [ ] Resource sharing between server/client
+- [ ] Basic monitoring & logging
+
+### Advanced
 
 ## Contribute
 
