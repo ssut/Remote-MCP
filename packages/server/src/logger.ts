@@ -24,7 +24,7 @@ export class ConsoleLogger implements Logger {
 
   constructor(options: LoggerOptions) {
     this.level = options.level;
-    this.prefix = options.prefix || "MCPRouter";
+    this.prefix = options.prefix || 'MCPRouter';
   }
 
   private formatMessage(
@@ -39,25 +39,25 @@ export class ConsoleLogger implements Logger {
 
   debug(message: string, meta?: Record<string, unknown>): void {
     if (this.level <= LogLevel.DEBUG) {
-      console.debug(this.formatMessage("DEBUG", message, meta));
+      console.debug(this.formatMessage('DEBUG', message, meta));
     }
   }
 
   info(message: string, meta?: Record<string, unknown>): void {
     if (this.level <= LogLevel.INFO) {
-      console.info(this.formatMessage("INFO", message, meta));
+      console.info(this.formatMessage('INFO', message, meta));
     }
   }
 
   warn(message: string, meta?: Record<string, unknown>): void {
     if (this.level <= LogLevel.WARN) {
-      console.warn(this.formatMessage("WARN", message, meta));
+      console.warn(this.formatMessage('WARN', message, meta));
     }
   }
 
   error(message: string, meta?: Record<string, unknown>): void {
     if (this.level <= LogLevel.ERROR) {
-      console.error(this.formatMessage("ERROR", message, meta));
+      console.error(this.formatMessage('ERROR', message, meta));
     }
   }
 

@@ -1,4 +1,5 @@
-import { ConsoleLogger, LogLevel, type Logger } from "./logger";
+import { EventEmitter, on } from 'node:events';
+import { ConsoleLogger, LogLevel, type Logger } from './logger';
 
 import {
   type BlobResourceContents,
@@ -12,14 +13,17 @@ import {
   ListResourcesResultSchema,
   ListToolsResult,
   ListToolsResultSchema,
+  type Notification,
   type Prompt,
   type PromptMessage,
   ReadResourceResultSchema,
   type Resource,
   type ResourceContents,
+  type ResourceListChangedNotification,
   type ServerCapabilities,
   type Tool,
-} from "@modelcontextprotocol/sdk/types.js";
+  ToolListChangedNotification,
+} from '@modelcontextprotocol/sdk/types.js';
 import {
   CallToolRequestSchema,
   GetPromptRequestSchema,
@@ -29,14 +33,21 @@ import {
   ListPromptsRequestSchema,
   ListResourcesRequestSchema,
   ListToolsRequestSchema,
+  PromptListChangedNotificationSchema,
   ReadResourceRequestSchema,
+  ResourceListChangedNotificationSchema,
+  ResourceUpdatedNotificationSchema,
+  RootsListChangedNotificationSchema,
+  type ServerNotification,
   SetLevelRequestSchema,
   SubscribeRequestSchema,
+  ToolListChangedNotificationSchema,
   UnsubscribeRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
-import { initTRPC } from "@trpc/server";
-import { ZodError, type z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
+} from '@modelcontextprotocol/sdk/types.js';
+import { TRPCError, initTRPC } from '@trpc/server';
+import { observable } from '@trpc/server/observable';
+import { ZodError, type z } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 export type ToolHandler<T> = (args: T) => Promise<CallToolResult>;
 export type ResourceHandler = () => Promise<Resource[]>;
@@ -84,6 +95,16 @@ export type Middleware = (
   next: (modifiedRequest: unknown) => Promise<unknown>,
 ) => Promise<unknown>;
 
+interface Events {
+  notification: (notification: ServerNotification) => void;
+
+  resourceListChanged: () => void;
+  resourceUpdated: (uri: string) => void;
+  toolListChanged: () => void;
+  promptListChanged: () => void;
+  rootsListChanged: () => void;
+}
+
 export class MCPRouter {
   private logger: Logger;
 
@@ -110,6 +131,7 @@ export class MCPRouter {
   private subscriptions = new Map<string, Set<string>>();
   private implementation: Implementation;
   private capabilities: ServerCapabilities;
+  private events = new EventEmitter();
 
   constructor(options: MCPRouterOptions) {
     this.logger =
@@ -139,27 +161,66 @@ export class MCPRouter {
       experimental: options.capabilities?.experimental,
     };
 
-    this.logger.debug("MCPRouter initialized", {
+    this.logger.debug('MCPRouter initialized', {
       name: options.name,
       version: options.version,
       capabilities: this.capabilities,
     });
   }
 
-  // Tool methods
+  private emit<T extends keyof Events>(
+    event: T,
+    ...args: Parameters<Events[T]>
+  ): void {
+    this.events.emit(event, ...args);
+  }
+
+  private _emitNotification(notification: ServerNotification) {
+    this.emit('notification', notification);
+  }
+
+  private _emitResourceListChanged() {
+    this._emitNotification({
+      method: 'notifications/resources/list_changed',
+      params: {},
+    });
+  }
+
+  private _emitResourceUpdated(uri: string) {
+    this._emitNotification({
+      method: 'notifications/resources/updated',
+      params: { uri },
+    });
+  }
+
+  private _emitToolListChanged() {
+    this._emitNotification({
+      method: 'notifications/tools/list_changed',
+      params: {},
+    });
+  }
+
+  private _emitPromptListChanged() {
+    this._emitNotification({
+      method: 'notifications/prompts/list_changed',
+      params: {},
+    });
+  }
+
   addTool<T>(
     name: string,
     definition: ToolDefinition<T>,
     handler: ToolHandler<T>,
   ) {
-    this.logger.debug("Adding tool", { name, definition });
+    this.logger.debug('Adding tool', { name, definition });
 
     this.tools.set(name, { definition, handler });
+    this._emitToolListChanged();
     return this;
   }
 
   async listTools(): Promise<Tool[]> {
-    this.logger.debug("Listing resources");
+    this.logger.debug('Listing resources');
 
     const tools = Array.from(this.tools.entries()).map(
       ([name, { definition }]) => {
@@ -171,7 +232,7 @@ export class MCPRouter {
           name,
           description: definition.description,
           inputSchema: {
-            type: "object",
+            type: 'object',
             properties: schema,
           },
         } satisfies Tool;
@@ -182,7 +243,7 @@ export class MCPRouter {
   }
 
   async callTool(name: string, args: unknown): Promise<CallToolResult> {
-    this.logger.debug("Calling tool", { name, args });
+    this.logger.debug('Calling tool', { name, args });
 
     const tool = this.tools.get(name);
     if (!tool) {
@@ -192,7 +253,7 @@ export class MCPRouter {
     const { definition, handler } = tool;
 
     const validatedArgs = definition.schema.parse(args);
-    this.logger.debug("Tool args validated", { validatedArgs });
+    this.logger.debug('Tool args validated', { validatedArgs });
 
     let result = validatedArgs;
     if (definition.middlewares) {
@@ -206,6 +267,8 @@ export class MCPRouter {
 
   addResource(uri: string, definition: ResourceDefinition) {
     this.resources.set(uri, definition);
+    this._emitResourceListChanged();
+
     return this;
   }
 
@@ -248,7 +311,7 @@ export class MCPRouter {
 
   async subscribeToResource(uri: string): Promise<void> {
     if (!this.capabilities.resources?.subscribe) {
-      throw new Error("Resource subscription not supported");
+      throw new Error('Resource subscription not supported');
     }
 
     const resource = this.resources.get(uri);
@@ -264,6 +327,7 @@ export class MCPRouter {
       this.subscriptions.set(uri, new Set());
     }
 
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     this.subscriptions.get(uri)!.add(uri);
   }
 
@@ -284,6 +348,8 @@ export class MCPRouter {
     handler: PromptHandler,
   ) {
     this.prompts.set(name, { definition, handler });
+    this._emitPromptListChanged();
+
     return this;
   }
 
@@ -299,7 +365,7 @@ export class MCPRouter {
     name: string,
     args: Record<string, string> = {},
   ): Promise<PromptMessage[]> {
-    this.logger.debug("Getting prompt", { name, args });
+    this.logger.debug('Getting prompt', { name, args });
 
     const prompt = this.prompts.get(name);
     if (!prompt) {
@@ -331,11 +397,11 @@ export class MCPRouter {
         )) as Record<string, string>;
       }
 
-      this.logger.debug("Prompt middleware applied", { modifiedArgs });
+      this.logger.debug('Prompt middleware applied', { modifiedArgs });
     }
 
     const messages = await handler(modifiedArgs);
-    this.logger.debug("Prompt executed successfully", {
+    this.logger.debug('Prompt executed successfully', {
       name,
       messageCount: messages.length,
     });
@@ -344,10 +410,10 @@ export class MCPRouter {
 
   // Initialize handler
   async initialize(request: InitializeRequest): Promise<InitializeResult> {
-    this.logger.debug("Initializing", { request });
+    this.logger.debug('Initializing', { request });
 
     return {
-      id: "RemoteMCP",
+      id: 'RemoteMCP',
       protocolVersion: LATEST_PROTOCOL_VERSION,
       capabilities: this.capabilities,
       serverInfo: this.implementation,
@@ -363,7 +429,7 @@ export class MCPRouter {
           data: {
             ...shape.data,
             zodError:
-              error.code === "BAD_REQUEST" && error.cause instanceof ZodError
+              error.code === 'BAD_REQUEST' && error.cause instanceof ZodError
                 ? error.cause.flatten()
                 : null,
           },
@@ -372,9 +438,10 @@ export class MCPRouter {
     });
     const router = t.router;
     const publicProcedure = t.procedure;
+    const events = this.events;
 
     const appRouter = router({
-      hello: publicProcedure.query(() => "Hello, world!"),
+      hello: publicProcedure.query(() => 'Hello, world!'),
 
       initialize: publicProcedure
         .input(InitializeRequestSchema)
@@ -384,7 +451,7 @@ export class MCPRouter {
           return this.initialize(params);
         }),
 
-      "tools/list": publicProcedure
+      'tools/list': publicProcedure
         .input(ListToolsRequestSchema)
         .output(ListToolsResultSchema)
         .query(async ({ input }) => ({
@@ -392,7 +459,7 @@ export class MCPRouter {
           // ...(input.params?.cursor && { nextCursor: input.params?.cursor }),
         })),
 
-      "tools/call": publicProcedure
+      'tools/call': publicProcedure
         .input(CallToolRequestSchema)
         .output(CallToolResultSchema)
         .mutation(async ({ input }) =>
@@ -400,28 +467,28 @@ export class MCPRouter {
         ),
 
       // Resources endpoints
-      "resources/list": publicProcedure
+      'resources/list': publicProcedure
         .input(ListResourcesRequestSchema)
         .output(ListResourcesResultSchema)
         .query(async ({ input }) => ({
           resources: await this.listResources(),
         })),
 
-      "resources/read": publicProcedure
+      'resources/read': publicProcedure
         .input(ReadResourceRequestSchema)
         .output(ReadResourceResultSchema)
         .query(async ({ input }) => ({
           contents: await this.readResource(input.params.uri),
         })),
 
-      "resources/subscribe": publicProcedure
+      'resources/subscribe': publicProcedure
         .input(SubscribeRequestSchema)
         .mutation(async ({ input }) => {
           await this.subscribeToResource(input.params.uri);
           return {};
         }),
 
-      "resources/unsubscribe": publicProcedure
+      'resources/unsubscribe': publicProcedure
         .input(UnsubscribeRequestSchema)
         .mutation(async ({ input }) => {
           await this.unsubscribeFromResource(input.params.uri);
@@ -429,7 +496,7 @@ export class MCPRouter {
         }),
 
       // Prompts endpoints
-      "prompts/list": publicProcedure
+      'prompts/list': publicProcedure
         .input(ListPromptsRequestSchema)
         .output(ListPromptsResultSchema)
         .query(async ({ input }) => ({
@@ -437,7 +504,7 @@ export class MCPRouter {
           // ...(input?.cursor && { nextCursor: input.cursor }),
         })),
 
-      "prompts/get": publicProcedure
+      'prompts/get': publicProcedure
         .input(GetPromptRequestSchema)
         .output(GetPromptResultSchema)
         .query(async ({ input }) => ({
@@ -446,8 +513,27 @@ export class MCPRouter {
             input.params.arguments,
           ),
         })),
+
+      notifications: publicProcedure.subscription(async function* () {
+        try {
+          for await (const event of on(events, 'notification', {
+            signal: undefined,
+          })) {
+            yield* event;
+          }
+        } finally {
+        }
+      }),
     });
 
     return appRouter;
   }
+}
+
+interface Events {
+  resourceListChanged: () => void;
+  resourceUpdated: (uri: string) => void;
+  toolListChanged: () => void;
+  promptListChanged: () => void;
+  rootsListChanged: () => void;
 }
