@@ -112,7 +112,7 @@ void client.start();
 
 You can see some examples in the `examples` directory.
 
-- [Cloudflare Worker](examples/cloudflare-worker)
+- [Cloudflare Workers](examples/cloudflare-workers)
 - [Standalone Node.js](examples/simple-server)
 
 ### Code Your Own Remote MCP Server
