@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { RemoteMCPClient } from './client.js';
 
 const client = new RemoteMCPClient({
