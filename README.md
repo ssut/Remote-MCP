@@ -210,10 +210,10 @@ This repository contains:
   - [ ] Custom Headers
   - [ ] Authentication Middleware
 - [ ] Basic error handling improvements
+- [ ] Basic middleware support
 
 ### Framework Support
 
-- [ ] Basic middleware support
 - [ ] Nest.js Integration (`@remote-mcp/nestjs`)
 
 ### Advanced Features
@@ -222,8 +222,6 @@ This repository contains:
   - [ ] Server-to-client requests
   - [ ] Resource sharing between server/client
 - [ ] Basic monitoring & logging
-
-### Advanced
 
 ## Contribute
 
