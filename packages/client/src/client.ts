@@ -2,29 +2,17 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
   CallToolRequestSchema,
-  CancelledNotificationSchema,
   GetPromptRequestSchema,
   InitializeRequestSchema,
-  InitializeResultSchema,
-  LATEST_PROTOCOL_VERSION,
   ListPromptsRequestSchema,
   ListResourcesRequestSchema,
   ListToolsRequestSchema,
-  LoggingMessageNotificationSchema,
-  ProgressNotificationSchema,
-  PromptListChangedNotificationSchema,
   ReadResourceRequestSchema,
-  ResourceListChangedNotificationSchema,
-  ResourceUpdatedNotificationSchema,
-  SetLevelRequestSchema,
   SubscribeRequestSchema,
-  ToolListChangedNotificationSchema,
   UnsubscribeRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import type { AppRouter } from '@remote-mcp/server';
-import { createTRPCClient, httpBatchLink, httpLink } from '@trpc/client';
-
-import type { z } from 'zod';
+import { createTRPCClient, httpLink } from '@trpc/client';
 
 export interface RemoteMCPClientOptions {
   remoteUrl: string;

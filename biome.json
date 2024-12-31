@@ -23,6 +23,9 @@
       "recommended": true,
       "style": {
         "noNonNullAssertion": "warn"
+      },
+      "correctness": {
+        "noUnusedImports": "error"
       }
     }
   },

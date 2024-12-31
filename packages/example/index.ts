@@ -1,5 +1,4 @@
 import { LogLevel, MCPRouter } from '@remote-mcp/server';
-import { createHTTPServer } from '@trpc/server/adapters/standalone';
 import { createBunServeHandler } from 'trpc-bun-adapter';
 
 import { z } from 'zod';

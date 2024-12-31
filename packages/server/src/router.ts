@@ -11,18 +11,13 @@ import {
   type InitializeResult,
   ListPromptsResultSchema,
   ListResourcesResultSchema,
-  ListToolsResult,
   ListToolsResultSchema,
-  type Notification,
   type Prompt,
   type PromptMessage,
   ReadResourceResultSchema,
   type Resource,
-  type ResourceContents,
-  type ResourceListChangedNotification,
   type ServerCapabilities,
   type Tool,
-  ToolListChangedNotification,
 } from '@modelcontextprotocol/sdk/types.js';
 import {
   CallToolRequestSchema,
@@ -33,19 +28,12 @@ import {
   ListPromptsRequestSchema,
   ListResourcesRequestSchema,
   ListToolsRequestSchema,
-  PromptListChangedNotificationSchema,
   ReadResourceRequestSchema,
-  ResourceListChangedNotificationSchema,
-  ResourceUpdatedNotificationSchema,
-  RootsListChangedNotificationSchema,
   type ServerNotification,
-  SetLevelRequestSchema,
   SubscribeRequestSchema,
-  ToolListChangedNotificationSchema,
   UnsubscribeRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { TRPCError, initTRPC } from '@trpc/server';
-import { observable } from '@trpc/server/observable';
+import { initTRPC } from '@trpc/server';
 import { ZodError, type z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
