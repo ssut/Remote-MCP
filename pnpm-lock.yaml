@@ -22,7 +22,7 @@ importers:
         specifier: ^2.3.3
         version: 2.3.3
 
-  examples/cloudflare-worker:
+  examples/cloudflare-workers:
     dependencies:
       '@remote-mcp/server':
         specifier: workspace:*
