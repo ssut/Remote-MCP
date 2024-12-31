@@ -1,5 +1,5 @@
 import { LogLevel, MCPRouter } from '@remote-mcp/server';
-import { createBunServeHandler } from 'trpc-bun-adapter';
+import { createHTTPServer } from '@trpc/server/adapters/standalone';
 
 import { z } from 'zod';
 
@@ -9,16 +9,6 @@ const mcpRouter = new MCPRouter({
   name: 'example-server',
   version: '1.0.0',
   capabilities: {
-    //   tools: {
-    //     listChanged: true,
-    //   },
-    //   resources: {
-    //     subscribe: true,
-    //     listChanged: true,
-    //   },
-    //   prompts: {
-    //     listChanged: true,
-    //   },
     logging: {},
   },
 });
@@ -64,13 +54,7 @@ mcpRouter.addTool(
 
 const appRouter = mcpRouter.createTRPCRouter();
 
-Bun.serve(
-  createBunServeHandler(
-    {
-      router: appRouter,
-    },
-    {
-      port: Number(process.env.PORT || 9512),
-    },
-  ),
-);
+void createHTTPServer({
+  router: appRouter,
+  createContext: () => ({}),
+}).listen(Number(process.env.PORT || 9512));

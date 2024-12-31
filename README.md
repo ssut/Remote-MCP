@@ -207,7 +207,7 @@ This repository contains:
   - [ ] Resource change notifications
   - [ ] Tool/Prompt list change notifications
 - [ ] HTTP Header Support
-  - [ ] Custom Headers
+  - [x] Custom Headers
   - [ ] Authentication Middleware
 - [ ] Basic error handling improvements
 - [ ] Basic middleware support

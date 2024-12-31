@@ -1,18 +1,28 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["ESNext", "DOM"],
-    "target": "ESNext",
-    "module": "ES2020",
-    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "target": "ES2022",
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "moduleDetection": "force",
+    "esModuleInterop": true,
     "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
+    "declaration": true,
+    "declarationMap": true,
     "noEmit": true,
+    "sourceMap": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
     "strict": true,
+    "noLib": false,
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
+    "isolatedModules": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
-  }
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

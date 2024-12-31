@@ -1,36 +1,34 @@
 import { EventEmitter, on } from 'node:events';
-import { ConsoleLogger, LogLevel, type Logger } from './logger';
+import { ConsoleLogger, LogLevel, type Logger } from './logger.js';
 
 import {
   type BlobResourceContents,
+  CallToolRequestSchema,
   type CallToolResult,
   CallToolResultSchema,
+  GetPromptRequestSchema,
   GetPromptResultSchema,
   type Implementation,
   type InitializeRequest,
-  type InitializeResult,
-  ListPromptsResultSchema,
-  ListResourcesResultSchema,
-  ListToolsResultSchema,
-  type Prompt,
-  type PromptMessage,
-  ReadResourceResultSchema,
-  type Resource,
-  type ServerCapabilities,
-  type Tool,
-} from '@modelcontextprotocol/sdk/types.js';
-import {
-  CallToolRequestSchema,
-  GetPromptRequestSchema,
   InitializeRequestSchema,
+  type InitializeResult,
   InitializeResultSchema,
   LATEST_PROTOCOL_VERSION,
   ListPromptsRequestSchema,
+  ListPromptsResultSchema,
   ListResourcesRequestSchema,
+  ListResourcesResultSchema,
   ListToolsRequestSchema,
+  ListToolsResultSchema,
+  type Prompt,
+  type PromptMessage,
   ReadResourceRequestSchema,
+  ReadResourceResultSchema,
+  type Resource,
+  type ServerCapabilities,
   type ServerNotification,
   SubscribeRequestSchema,
+  type Tool,
   UnsubscribeRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { initTRPC } from '@trpc/server';
@@ -429,7 +427,7 @@ export class MCPRouter {
     const events = this.events;
 
     const appRouter = router({
-      hello: publicProcedure.query(() => 'Hello, world!'),
+      ping: publicProcedure.query(() => 'pong'),
 
       initialize: publicProcedure
         .input(InitializeRequestSchema)
@@ -502,7 +500,7 @@ export class MCPRouter {
           ),
         })),
 
-      notifications: publicProcedure.subscription(async function* () {
+      'notifications/stream': publicProcedure.subscription(async function* () {
         try {
           for await (const event of on(events, 'notification', {
             signal: undefined,

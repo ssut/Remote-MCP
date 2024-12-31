@@ -12,29 +12,29 @@ import {
   UnsubscribeRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import type { AppRouter } from '@remote-mcp/server';
-import { createTRPCClient, httpLink } from '@trpc/client';
+import {
+  type CreateTRPCClient,
+  createTRPCClient,
+  httpBatchLink,
+} from '@trpc/client';
 
 export interface RemoteMCPClientOptions {
   remoteUrl: string;
-  authToken?: string;
+  headers?: Record<string, string>;
   onError?: (method: string, error: Error) => void;
 }
 
 export class RemoteMCPClient {
   public readonly server: Server;
-  public readonly trpc: ReturnType<typeof createTRPCClient<AppRouter>>;
+  public readonly trpc: CreateTRPCClient<AppRouter>;
   private readonly options: RemoteMCPClientOptions;
 
   constructor(options: RemoteMCPClientOptions) {
     this.trpc = createTRPCClient<AppRouter>({
       links: [
-        httpLink({
+        httpBatchLink({
           url: options.remoteUrl,
-          headers: options.authToken
-            ? {
-                Authorization: `Bearer ${options.authToken}`,
-              }
-            : undefined,
+          headers: options.headers,
         }),
       ],
     });
@@ -72,12 +72,21 @@ export class RemoteMCPClient {
     };
   }
 
+  /** @TODO implement */
+  private async setupNotificationHandler() {}
+
   private async setupHandlers() {
     this.server.setRequestHandler(InitializeRequestSchema, async (request) => {
       try {
-        return await this.trpc.initialize.mutate(request);
+        const response = await this.trpc.initialize.mutate(request);
+        if (response.capabilities && response.capabilities) {
+          // await this.setupNotificationHandler();
+        }
+
+        return response;
       } catch (error) {
         this.options.onError?.(request.method, error as Error);
+        throw error;
       }
     });
 
@@ -86,6 +95,7 @@ export class RemoteMCPClient {
         return await this.trpc['tools/list'].query(request);
       } catch (error) {
         this.options.onError?.(request.method, error as Error);
+        throw error;
       }
     });
 
@@ -94,6 +104,7 @@ export class RemoteMCPClient {
         return await this.trpc['tools/call'].mutate(request);
       } catch (error) {
         this.options.onError?.(request.method, error as Error);
+        throw error;
       }
     });
 
@@ -104,6 +115,7 @@ export class RemoteMCPClient {
           return await this.trpc['resources/list'].query(request);
         } catch (error) {
           this.options.onError?.(request.method, error as Error);
+          throw error;
         }
       },
     );
@@ -115,6 +127,7 @@ export class RemoteMCPClient {
           return await this.trpc['resources/read'].query(request);
         } catch (error) {
           this.options.onError?.(request.method, error as Error);
+          throw error;
         }
       },
     );
@@ -124,6 +137,7 @@ export class RemoteMCPClient {
         return await this.trpc['resources/subscribe'].mutate(request);
       } catch (error) {
         this.options.onError?.(request.method, error as Error);
+        throw error;
       }
     });
 
@@ -132,6 +146,7 @@ export class RemoteMCPClient {
         return await this.trpc['resources/unsubscribe'].mutate(request);
       } catch (error) {
         this.options.onError?.(request.method, error as Error);
+        throw error;
       }
     });
 
@@ -141,6 +156,7 @@ export class RemoteMCPClient {
         return await this.trpc['prompts/list'].query(request);
       } catch (error) {
         this.options.onError?.(request.method, error as Error);
+        throw error;
       }
     });
 
@@ -149,56 +165,9 @@ export class RemoteMCPClient {
         return await this.trpc['prompts/get'].query(request);
       } catch (error) {
         this.options.onError?.(request.method, error as Error);
+        throw error;
       }
     });
-
-    // this.server.notification({
-    //   method:
-    // })
-
-    // this.trpc.notifications
-
-    // this.trpc["notifications/resources/list_changed"].subscribe(undefined, {
-    //   onData: () => {
-    //     this.server.notification(ResourceListChangedNotificationSchema, {});
-    //   },
-    // });
-
-    //   this.trpc["notifications/resources/updated"].subscribe(undefined, {
-    //     onData: (data: { uri: string }) => {
-    //       this.server.notification(ResourceUpdatedNotificationSchema, {
-    //         uri: data.uri,
-    //       });
-    //     },
-    //   }t);
-
-    // this.trpc["notifications/tools/list_changed"].subscribe(undefined, {
-    //   onData: () => {
-    //     this.server.notification({
-    //       method: "notifications/tools/list_changed",
-    //     });
-    //   },
-    // });
-
-    //   this.trpc["notifications/prompts/list_changed"].subscribe(undefined, {
-    //     onData: () => {
-    //       this.server.notification(PromptListChangedNotificationSchema, {});
-    //     },
-    //   });
-
-    // this.trpc["notifications/progress"].subscribe(undefined, {
-    //   onData: (data: {
-    //     progressToken: string | number;
-    //     progress?: number;
-    //     total?: number;
-    //   }) => {
-    //     this.server.notification(ProgressNotificationSchema, {
-    //       progressToken: data.progressToken,
-    //       progress: data.progress,
-    //       total: data.total,
-    //     });
-    //   },
-    // });
   }
 
   async start() {

@@ -2,15 +2,24 @@
   "name": "@remote-mcp/client",
   "version": "0.0.1",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ssut/Remote-MCP.git",
+    "directory": "packages/client"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w"
   },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
     "@trpc/client": "^11.0.0-rc.682",
+    "@trpc/server": "^11.0.0-rc.682",
     "zod": "^3.22.4",
     "zod-to-json-schema": "^3.24.1"
   }

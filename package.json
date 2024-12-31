@@ -1,6 +1,9 @@
 {
-  "name": "@brandazine/rcp",
+  "name": "@ssut/remote-mcp",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -9,7 +12,6 @@
   },
   "workspaces": ["packages/*"],
   "devDependencies": {
-    "@types/bun": "latest",
     "@types/node": "^22.10.2",
     "biome": "^0.3.3",
     "turbo": "^2.3.3"
@@ -17,5 +19,5 @@
   "peerDependencies": {
     "typescript": "^5.7.2"
   },
-  "packageManager": "bun@1.1.42"
+  "packageManager": "pnpm@9.15.2"
 }

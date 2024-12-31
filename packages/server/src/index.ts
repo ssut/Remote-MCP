@@ -1,3 +1,8 @@
-export { MCPRouter } from './router';
-export * from './logger';
-export type { AppRouter, RouterInputs, RouterOutputs } from './types';
+export { MCPRouter } from './router.js';
+export {
+  LogLevel,
+  type LoggerOptions,
+  type Logger,
+  ConsoleLogger,
+} from './logger.js';
+export type { AppRouter, RouterInputs, RouterOutputs } from './types.js';
