@@ -80,19 +80,13 @@ importers:
       zod:
         specifier: ^3.22.4
         version: 3.24.1
-      zod-to-json-schema:
-        specifier: ^3.24.1
-        version: 3.24.1(zod@3.24.1)
     devDependencies:
       typescript:
         specifier: ^5.7.2
         version: 5.7.2
 
   packages/server:
-    devDependencies:
-      '@microsoft/api-extractor':
-        specifier: ^7.48.1
-        version: 7.48.1(@types/node@22.10.2)
+    dependencies:
       '@modelcontextprotocol/sdk':
         specifier: latest
         version: 1.0.4
@@ -100,8 +94,18 @@ importers:
         specifier: ^11.0.0-rc.682
         version: 11.0.0-rc.682(@trpc/server@11.0.0-rc.682(typescript@5.7.2))(typescript@5.7.2)
       '@trpc/server':
-        specifier: next
+        specifier: ^11.0.0-rc.682
         version: 11.0.0-rc.682(typescript@5.7.2)
+      zod:
+        specifier: ^3.22.4
+        version: 3.24.1
+      zod-to-json-schema:
+        specifier: ^3.24.1
+        version: 3.24.1(zod@3.24.1)
+    devDependencies:
+      '@microsoft/api-extractor':
+        specifier: ^7.48.1
+        version: 7.48.1(@types/node@22.10.2)
       '@types/jsonwebtoken':
         specifier: ^9.0.5
         version: 9.0.7
@@ -114,9 +118,6 @@ importers:
       typescript:
         specifier: ^5.7.2
         version: 5.7.2
-      zod:
-        specifier: ^3.22.4
-        version: 3.24.1
 
 packages:
 
