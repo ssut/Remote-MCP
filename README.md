@@ -1,5 +1,7 @@
 # Remote-MCP: Remote Model Context Protocol
 
+[![smithery badge](https://smithery.ai/badge/@remote-mcp/client)](https://smithery.ai/community/pack/remote-mcp)
+
 A **type-safe, bidirectional and simple** solution for **remote MCP communication**, allowing remote access and centralized management of model contexts.
 
 ![preview](https://github.com/user-attachments/assets/a16804b9-8378-493c-8ca8-f61839458cde)
@@ -65,6 +67,14 @@ Note: I don't want this to be a sophisticated or overcomplicated thing. This way
 > *Note: This project is currently under active development and is considered experimental. Expect breaking changes and potential issues.*
 
 ## Client Usage
+
+### Installing via Smithery
+
+To install Remote MCP Client for Claude Desktop automatically via [Smithery](https://smithery.ai/protocol/@remote-mcp/client):
+
+```bash
+npx @smithery/cli install @remote-mcp/client --client claude
+```
 
 ### Use Publicly Published Package
 
