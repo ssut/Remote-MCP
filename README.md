@@ -1,5 +1,7 @@
 # Remote-MCP: Remote Model Context Protocol
 
+[![smithery badge](https://smithery.ai/badge/@remote-mcp/server)](https://smithery.ai/server/@remote-mcp/protocol)
+
 A **type-safe, bidirectional and simple** solution for **remote MCP communication**, allowing remote access and centralized management of model contexts.
 
 ![preview](https://github.com/user-attachments/assets/a16804b9-8378-493c-8ca8-f61839458cde)
@@ -113,6 +115,14 @@ You can see some examples in the `examples` directory.
 
 - [Cloudflare Workers](examples/cloudflare-workers)
 - [Standalone Node.js](examples/simple-server)
+
+### Installing via Smithery
+
+To install Remote MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/protocol):
+
+```bash
+npx -y @smithery/cli install @remote-mcp/protocol --client claude
+```
 
 ### Code Your Own Remote MCP Server
 
