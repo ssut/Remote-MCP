@@ -78,7 +78,7 @@ Just put the following code in your MCP client settings, in here I'm using Claud
       "args": ["-y", "@remote-mcp/client"],
       "env": {
         "REMOTE_MCP_URL": "http://localhost:9512",
-        "HTTP_HEADER__Authorization": "Bearer <token>"
+        "HTTP_HEADER_Authorization": "Bearer <token>"
       }
     }
   }
