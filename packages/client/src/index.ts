@@ -2,6 +2,9 @@
 
 import { RemoteMCPClient } from './client.js';
 
+export { RemoteMCPClient } from './client.js';
+export default RemoteMCPClient;
+
 const client = new RemoteMCPClient({
   remoteUrl: process.env.REMOTE_URL || 'http://localhost:9512',
   headers: Object.keys(process.env)
