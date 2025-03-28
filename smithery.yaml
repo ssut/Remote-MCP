@@ -1,0 +1,23 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+build:
+  dockerBuildPath: examples/simple-server
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - remoteMcpUrl
+      - authorizationToken
+    properties:
+      remoteMcpUrl:
+        type: string
+        description: The URL of the remote MCP server.
+      authorizationToken:
+        type: string
+        description: The authorization token for accessing the remote MCP server.
+  commandFunction:
+    # A function that produces the CLI command to start the MCP on stdio.
+    |-
+    (config) => ({ command: 'pnpm', args: ['run', 'start'], env: { REMOTE_MCP_URL: config.remoteMcpUrl, HTTP_HEADER__Authorization: `Bearer ${config.authorizationToken}` } })
